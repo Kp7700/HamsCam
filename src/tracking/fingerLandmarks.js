@@ -6,12 +6,22 @@ const FINGERTIP_INDICES = {
   pinky_tip: 20,
 };
 
-export function extractFingerTips(handLandmarks) {
+function getHandednessLabel(handedness) {
+  if (!handedness || handedness.length === 0) {
+    return null;
+  }
+
+  return handedness[0].categoryName?.toLowerCase() ?? null;
+}
+
+export function extractFingerTips(handLandmarks, handedness) {
   if (!handLandmarks || handLandmarks.length < 21) {
     return null;
   }
 
   return {
+    handedness: getHandednessLabel(handedness),
+
     thumb_tip: handLandmarks[FINGERTIP_INDICES.thumb_tip],
     index_tip: handLandmarks[FINGERTIP_INDICES.index_tip],
     middle_tip: handLandmarks[FINGERTIP_INDICES.middle_tip],
@@ -20,8 +30,13 @@ export function extractFingerTips(handLandmarks) {
   };
 }
 
-export function extractAllFingerTips(handsLandmarks) {
+export function extractAllFingerTips(handsLandmarks, handednesses = []) {
   return handsLandmarks
-    .map(extractFingerTips)
+    .map((handLandmarks, index) =>
+      extractFingerTips(
+        handLandmarks,
+        handednesses[index],
+      )
+    )
     .filter(Boolean);
 }

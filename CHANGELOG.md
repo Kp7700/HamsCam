@@ -1,14 +1,42 @@
-
-### `CHANGELOG.md`
-
-Keep this factual and boring. That's a good thing for a changelog.
-
-```md
 # Changelog
 
 All notable changes to HamsCam are documented here.
 
 The project is currently in early development, so the changelog focuses on completed implementation changes.
+
+## [v0.0.2] - 2026-10-03
+
+### Added
+
+- Tracked anchor system for semantic finger landmarks
+- Image asset definitions
+- Image asset loading
+- Asset manager
+- Asset attachment system
+- Coordinate transformation system
+- Display coordinate transformation
+- Mirrored coordinate handling
+- Position smoothing
+- Face Landmarker integration
+- Mouth state detection
+- Separate camera and graphics areas
+- HamsCam image asset collection
+
+### Project Structure
+
+Added separate modules for:
+
+- Anchor management
+- Asset management
+- Coordinate transformation
+- Graphics rendering
+- Motion smoothing
+- Face tracking
+- Mouth state detection
+
+### Notes
+
+This release extends the initial camera and hand-tracking foundation with the completed systems currently present in the project.
 
 ## [v0.0.1] - 2026-10-02
 

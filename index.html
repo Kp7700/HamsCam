@@ -4,10 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HamsCam</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
-  <video id="camera" autoplay playsinline></video>
+  <div id="stage">
+    <div id="graphics"></div>
+
+    <div id="camera-panel">
+      <video id="camera" autoplay playsinline></video>
+    </div>
+  </div>
 
   <script type="module" src="./src/main.js"></script>
 </body>

@@ -1,17 +1,22 @@
 {
   "name": "hamscam",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.0.2",
+  "description": "Local-first browser-based system for real-time camera and hand landmark tracking.",
   "main": "index.js",
   "scripts": {
-  "dev": "vite",
-  "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/kp7700/HamsCam.git"
   },
-  "keywords": [],
+  "keywords": [
+    "computer-vision",
+    "hand-tracking",
+    "mediapipe",
+    "browser",
+    "foss"
+  ],
   "author": "",
   "license": "ISC",
   "type": "module",
