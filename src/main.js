@@ -16,15 +16,6 @@ import {
 } from "./anchors/anchorSystem.js";
 
 import {
-  createFaceTracker,
-  detectFace,
-} from "./tracking/faceTracker.js";
-
-import {
-  getMouthState,
-} from "./tracking/mouthState.js";
-
-import {
   createImageAsset,
 } from "./assets/asset.js";
 
@@ -38,17 +29,191 @@ import {
 
 import defaultImageUrl from "./assets/HamsCam Images/default.jpg";
 
+import thumbsUpImageUrl from "./assets/HamsCam Images/thumbs_up.jpg";
+
+import peaceImageUrl from "./assets/HamsCam Images/peace.jpg";
+
+import okSignImageUrl from "./assets/HamsCam Images/ok_sign.jpg";
+
+import {
+  detectGesture,
+  detectFullFrameGesture,
+} from "./gestures/gestureSystem.js";
+
+import {
+  createGestureStabilizer,
+} from "./gestures/gestureStabilizer.js";
+
+import silenceImageUrl from "./assets/HamsCam Images/silence.jpg";
+
+import {
+  createFaceTracker,
+  detectFace,
+} from "./tracking/faceTracker.js";
+
+import {
+  getMouthState,
+} from "./tracking/mouthState.js";
+
+import openEyeMouthImageUrl from "./assets/HamsCam Images/open_eye_mouth.jpg";
+
+import { getEyeState } from "./tracking/eyeState.js";
+
+import { getFaceState } from "./tracking/faceState.js";
+
+import openMouthCloseEyeImageUrl from "./assets/HamsCam Images/open_mouth_close_eye.jpg";
+
+import {
+  createFaceStateStabilizer,
+} from "./tracking/faceStateStabilizer.js";
+
+import handOnEarImageUrl from "./assets/HamsCam Images/hand_on_ear.jpg";
+
 const camera = document.querySelector("#camera");
 
 const graphics = document.querySelector("#graphics");
+
+const trackingStatus = document.querySelector("#tracking-status");
+const handsStatus = document.querySelector("#hands-status");
+const faceStatus = document.querySelector("#face-status");
+const reactionStatus = document.querySelector("#reaction-status");
+
+const themeToggle = document.querySelector("#theme-toggle");
+
+themeToggle.addEventListener("click", () => {
+  const isDark = document.body.classList.toggle("dark-theme");
+
+  themeToggle.textContent = isDark ? "Light" : "Dark";
+
+  themeToggle.setAttribute(
+    "aria-label",
+    isDark
+      ? "Switch to light theme"
+      : "Switch to dark theme",
+  );
+});
 
 const renderer = createRenderer(graphics);
 
 const assetManager = createAssetManager();
 
+
 const defaultAsset = createImageAsset(
   defaultImageUrl,
 );
+
+const thumbsUpAsset = createImageAsset(
+  thumbsUpImageUrl,
+);
+
+const peaceAsset = createImageAsset(
+  peaceImageUrl,
+);
+
+const okSignAsset = createImageAsset(
+  okSignImageUrl,
+);
+
+const silenceAsset = createImageAsset(
+  silenceImageUrl,
+);
+
+const handOnEarAsset = createImageAsset(
+  handOnEarImageUrl,
+);
+
+const openEyeMouthAsset = createImageAsset(
+  openEyeMouthImageUrl,
+);
+
+const openMouthCloseEyeAsset = createImageAsset(
+  openMouthCloseEyeImageUrl,
+);
+
+const faceStateStabilizer =
+  createFaceStateStabilizer({
+    requiredFrames: 2,
+  });
+
+const handOnEarAvatar = {
+  asset: handOnEarAsset,
+  visible: true,
+  active: true,
+  width: 400,
+  height: 400,
+};
+
+assetManager.add(
+  "hand-on-ear-avatar",
+  handOnEarAvatar,
+);
+
+const openMouthCloseEyeAvatar = {
+  asset: openMouthCloseEyeAsset,
+  visible: true,
+  active: true,
+  width: 400,
+  height: 400,
+};
+
+assetManager.add(
+  "open-mouth-close-eye-avatar",
+  openMouthCloseEyeAvatar,
+);
+
+const silenceAvatar = {
+  asset: silenceAsset,
+  visible: true,
+  active: true,
+  width: 400,
+  height: 400,
+};
+
+assetManager.add(
+  "silence-avatar",
+  silenceAvatar,
+);
+
+const openEyeMouthAvatar = {
+  asset: openEyeMouthAsset,
+  visible: true,
+  active: true,
+  width: 400,
+  height: 400,
+};
+
+assetManager.add(
+  "open-eye-mouth-avatar",
+  openEyeMouthAvatar,
+);
+
+const okSignAvatar = {
+  asset: okSignAsset,
+  visible: true,
+  active: true,
+  width: 400,
+  height: 400,
+};
+
+assetManager.add(
+  "ok-sign-avatar",
+  okSignAvatar,
+);
+
+
+const peaceAvatar = {
+  asset: peaceAsset,
+  visible: true,
+  active: true,
+  width: 400,
+  height: 400,
+};
+
+assetManager.add(
+  "peace-avatar",
+  peaceAvatar,
+);
+
 
 const defaultAvatar = {
   asset: defaultAsset,
@@ -63,39 +228,57 @@ assetManager.add(
   defaultAvatar,
 );
 
+
+const thumbsUpAvatar = {
+  asset: thumbsUpAsset,
+  visible: true,
+  active: true,
+  width: 400,
+  height: 400,
+};
+
+assetManager.add(
+  "thumbs-up-avatar",
+  thumbsUpAvatar,
+);
+
+
 renderer.render(
   "default-avatar",
   defaultAvatar,
 );
 
+
+const gestureAvatars = {
+  hand_on_ear: handOnEarAvatar,
+  thumbs_up: thumbsUpAvatar,
+  peace: peaceAvatar,
+  ok_sign: okSignAvatar,
+  silence: silenceAvatar,
+};
+
+const faceAvatars = {
+  mouth_open_eyes_open: openEyeMouthAvatar,
+  mouth_open_eyes_closed: openMouthCloseEyeAvatar,
+};
+
 const stream = await getCameraStream();
 
 camera.srcObject = stream;
 
-camera.addEventListener("loadedmetadata", () => {
-  console.log("Camera geometry:", {
-    videoWidth: camera.videoWidth,
-    videoHeight: camera.videoHeight,
-    clientWidth: camera.clientWidth,
-    clientHeight: camera.clientHeight,
-    offsetWidth: camera.offsetWidth,
-    offsetHeight: camera.offsetHeight,
-  });
-});
-
 await camera.play();
+
 
 const handTracker = await createHandTracker();
 
-console.log("HamsCam hand tracking ready");
-
 const faceTracker = await createFaceTracker();
 
-console.log("HamsCam face tracking ready");
-
-let frameCount = 0;
-
 const anchorSystem = createAnchorSystem();
+
+const gestureStabilizer = createGestureStabilizer({
+  requiredFrames: 5,
+});
+
 
 function processFrame() {
   if (camera.readyState < 2) {
@@ -120,63 +303,100 @@ function processFrame() {
   const faceLandmarks =
     faceResults.faceLandmarks?.[0] ?? null;
 
-  const mouthState = getMouthState(
-    faceLandmarks,
+  const mouthState =
+    getMouthState(faceLandmarks);
+
+  const eyeState =
+    getEyeState(faceLandmarks);
+
+  const faceState = getFaceState(
+    faceResults.faceLandmarks?.length > 0,
+    mouthState,
+    eyeState,
   );
+
+  const stableFaceState =
+  faceStateStabilizer.update(
+    faceState,
+  );
+
 
   const fingerTips = extractAllFingerTips(
     results.landmarks,
     results.handednesses,
   );
 
-  const anchors = anchorSystem.update(
+  handsStatus.textContent = fingerTips.length;
+
+  faceStatus.textContent =
+    faceResults.faceLandmarks?.length > 0
+      ? "Detected"
+      : "Not detected";
+
+  trackingStatus.textContent = "Active";
+
+
+  anchorSystem.update(
     fingerTips,
     timestamp,
   );
 
-  frameCount++;
 
-  if (frameCount % 30 === 0) {
-    console.log(
-      `Detected hands: ${fingerTips.length}`,
-    );
+  const gesture =
+    results.landmarks
+      ?.map((handLandmarks) =>
+        detectGesture(handLandmarks),
+      )
+      .find(
+        (gesture) => gesture !== "none",
+      ) ?? "none";
 
-    fingerTips.forEach((hand, index) => {
-      console.log(`--- HAND ${index + 1} ---`);
+  const fullFrameGesture = detectFullFrameGesture(
+    faceLandmarks,
+    results.landmarks,
+  );
 
-      console.log(
-        `THUMB  x=${hand.thumb_tip.x.toFixed(3)} ` +
-        `y=${hand.thumb_tip.y.toFixed(3)} ` +
-        `z=${hand.thumb_tip.z.toFixed(3)}`,
-      );
+  const detectedGesture =
+    fullFrameGesture !== "none"
+      ? fullFrameGesture
+      : gesture;
 
-      console.log(
-        `INDEX  x=${hand.index_tip.x.toFixed(3)} ` +
-        `y=${hand.index_tip.y.toFixed(3)} ` +
-        `z=${hand.index_tip.z.toFixed(3)}`,
-      );
+  const stableGesture =
+    gestureStabilizer.update(detectedGesture);
 
-      console.log(
-        `MIDDLE x=${hand.middle_tip.x.toFixed(3)} ` +
-        `y=${hand.middle_tip.y.toFixed(3)} ` +
-        `z=${hand.middle_tip.z.toFixed(3)}`,
-      );
+  let avatar = defaultAvatar;
 
-      console.log(
-        `RING   x=${hand.ring_tip.x.toFixed(3)} ` +
-        `y=${hand.ring_tip.y.toFixed(3)} ` +
-        `z=${hand.ring_tip.z.toFixed(3)}`,
-      );
-
-      console.log(
-        `PINKY  x=${hand.pinky_tip.x.toFixed(3)} ` +
-        `y=${hand.pinky_tip.y.toFixed(3)} ` +
-        `z=${hand.pinky_tip.z.toFixed(3)}`,
-      );
-    });
+  if (stableGesture !== "none") {
+    avatar =
+      gestureAvatars[stableGesture] ??
+      defaultAvatar;
+  } else {
+    avatar =
+      faceAvatars[stableFaceState] ??
+      defaultAvatar;
   }
 
-  requestAnimationFrame(processFrame);
+  if (stableGesture !== "none") {
+    reactionStatus.textContent = stableGesture;
+  } else {
+    reactionStatus.textContent = stableFaceState;
+  }
+
+  renderer.render(
+    "default-avatar",
+    {
+      ...avatar,
+      visible: true,
+    },
+  );
+
+
+  requestAnimationFrame(
+    processFrame,
+  );
 }
 
-requestAnimationFrame(processFrame);
+
+requestAnimationFrame(
+  processFrame,
+);

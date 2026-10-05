@@ -32,6 +32,13 @@ export function createRenderer(container) {
         elements.set(id, element);
       }
 
+      if (
+        attachment.asset?.type === "image" &&
+        attachment.asset.src !== element.src
+      ) {
+        element.src = attachment.asset.src;
+      }
+
       element.style.display =
         attachment.visible && attachment.active
           ? "block"
@@ -46,16 +53,18 @@ export function createRenderer(container) {
 
       if (attachment.position) {
         element.style.left =
-          `${attachment.position.x - width / 2}px`;
+          `${attachment.position.x}px`;
 
         element.style.top =
-          `${attachment.position.y - height / 2}px`;
+          `${attachment.position.y}px`;
+
+        element.style.transform =
+          "translate(-50%, -50%)";
       } else {
-        element.style.left =
-          `calc(50% - ${width / 2}px)`;
-
-        element.style.top =
-          `calc(50% - ${height / 2}px)`;
+        element.style.left = "50%";
+        element.style.top = "50%";
+        element.style.transform =
+          "translate(-50%, -50%)";
       }
     },
 

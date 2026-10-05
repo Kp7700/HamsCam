@@ -1,53 +1,56 @@
 # HamsCam Development Guide
 
-This document describes the development structure and architectural boundaries of HamsCam.
-
-**Current version:** v0.0.2  
-**Completed phases:** 1–7
+This document describes the development structure, architectural boundaries, and responsibilities of the HamsCam codebase.
 
 ## Development Philosophy
 
 HamsCam is developed incrementally.
 
-Each phase establishes a working foundation before the next layer is added.
+The project is organized into independent subsystems so that camera access, computer vision, interaction logic, assets, and rendering remain understandable and testable.
 
-The current implementation should remain understandable, testable, and separated into independent responsibilities.
+Changes should preserve the existing architecture unless there is a concrete reason to modify it.
 
 ## Core Architecture
 
-The current project is organized around the following pipeline:
+HamsCam processes camera input through separate hand and face tracking pipelines.
+
+### Hand and Gesture Pipeline
 
 ```text
-Real-world movement
-        ↓
 Camera
-        ↓
+  ↓
 Hand Tracking
-        ↓
+  ↓
 Finger Landmarks
-        ↓
-Anchors
-        ↓
-Coordinate Transformation
-        ↓
-Motion / Smoothing
-        ↓
+  ↓
+Gesture Detection
+  ↓
+Gesture Stabilization
+  ↓
+Reaction Selection
+  ↓
 Graphics
-        ↓
-Renderer
 ```
 
-Face tracking is handled separately:
+### Face Pipeline
 
 ```text
 Camera
-   ↓
+  ↓
 Face Tracking
-   ↓
+  ↓
 Face Landmarks
-   ↓
-Mouth State
+  ↓
+Mouth / Eye State Detection
+  ↓
+Face-State Stabilization
+  ↓
+Reaction Selection
+  ↓
+Graphics
 ```
+
+When both systems produce a reaction, hand gestures take priority over face-based reactions.
 
 ## Project Structure
 
@@ -70,6 +73,15 @@ src/
 │   ├── coordinateTransform.js
 │   └── displayCoordinates.js
 │
+├── gestures/
+│   ├── gestureStabilizer.js
+│   ├── gestureSystem.js
+│   ├── handOnEar.js
+│   ├── okSign.js
+│   ├── peace.js
+│   ├── silence.js
+│   └── thumbsUp.js
+│
 ├── graphics/
 │   └── renderer.js
 │
@@ -78,6 +90,10 @@ src/
 │   └── testSmoother.js
 │
 ├── tracking/
+│   ├── eyeState.js
+│   ├── faceLandmarks.js
+│   ├── faceState.js
+│   ├── faceStateStabilizer.js
 │   ├── faceTracker.js
 │   ├── fingerLandmarks.js
 │   ├── handTracker.js
@@ -98,9 +114,9 @@ Responsible for:
 
 - Requesting the webcam stream
 - Returning the local video stream
-- Stopping camera tracks
+- Managing camera tracks
 
-The camera module does not handle tracking or graphics.
+The camera module does not perform tracking or rendering.
 
 ### Hand Tracking
 
@@ -113,7 +129,7 @@ Responsible for:
 - Initializing the hand tracker
 - Processing video frames
 - Detecting up to two hands
-- Returning MediaPipe hand landmark results
+- Returning hand landmark results
 
 ### Finger Landmarks
 
@@ -129,7 +145,7 @@ ring_tip
 pinky_tip
 ```
 
-It also provides handedness information.
+It also preserves handedness information.
 
 ### Anchor System
 
@@ -137,7 +153,7 @@ It also provides handedness information.
 
 Converts tracked finger information into semantic anchors.
 
-Examples:
+Examples include:
 
 ```text
 left_index_tip
@@ -156,17 +172,37 @@ Handles MediaPipe Face Landmarker.
 
 It provides face landmark data independently from the hand tracking system.
 
-### Mouth State
+### Face State
 
-`src/tracking/mouthState.js`
+The face-tracking modules determine states from facial landmarks.
 
-Uses face landmarks to determine mouth state.
+`src/tracking/mouthState.js` handles mouth openness.
 
-It currently calculates:
+`src/tracking/eyeState.js` handles eye state information.
 
-- Whether a face is detected
-- Mouth openness
-- Whether the mouth is considered open
+`src/tracking/faceState.js` combines the relevant facial states into application-level face states.
+
+`src/tracking/faceStateStabilizer.js` prevents short-lived changes from immediately becoming reactions.
+
+### Gestures
+
+`src/gestures/`
+
+Contains gesture detection and stabilization.
+
+Current gesture modules include:
+
+- Thumbs Up
+- Peace
+- OK Sign
+- Silence
+- Both Hands on Ear
+
+`gestureSystem.js` coordinates gesture detection.
+
+`gestureStabilizer.js` reduces unstable frame-to-frame gesture changes.
+
+Gesture recognition remains separate from the tracking modules. Tracking provides landmarks; gesture modules interpret those landmarks.
 
 ### Assets
 
@@ -185,6 +221,7 @@ They provide:
 - Asset loading
 - Asset management
 - Attachment information
+- Visibility and activation state
 
 ### Coordinate Transformation
 
@@ -200,7 +237,7 @@ The coordinate system also accounts for the mirrored camera view.
 
 Provides position smoothing for tracked coordinates.
 
-The smoothing system is independent of the tracker and renderer.
+The smoothing system remains independent of the tracker and renderer.
 
 `testSmoother.js` contains the current basic smoothing test.
 
@@ -210,53 +247,66 @@ The smoothing system is independent of the tracker and renderer.
 
 Handles rendering graphical assets inside the graphics area.
 
-The renderer is separate from the tracking system.
+The renderer receives attachment information and places the corresponding graphical elements.
+
+The renderer does not perform tracking, gesture recognition, or face analysis.
 
 ## Main Entry Point
 
 `src/main.js` coordinates the different systems.
 
-It is responsible for connecting:
+It connects the major application stages:
 
 ```text
 Camera
   ↓
 Trackers
   ↓
-Landmark extraction
+Landmark Extraction
   ↓
-Anchors
+Gesture / Face-State Detection
   ↓
-Application state
+Stabilization
+  ↓
+Reaction Selection
+  ↓
+Asset Rendering
 ```
 
-Individual subsystems should remain inside their respective modules rather than moving their implementation into `main.js`.
+`main.js` acts as the application coordinator. Individual subsystem implementations should remain inside their respective modules rather than being moved into `main.js`.
 
-## Current Development Boundary
+## Reaction System
 
-The current completed work includes:
+HamsCam uses detected gestures and face states as control signals for graphical reactions.
+
+The current priority is:
 
 ```text
-Camera
-   ↓
-Hand Tracking
-   ↓
-Finger Landmarks
-   ↓
-Anchors
-   ↓
-Assets
-   ↓
-Coordinates
-   ↓
-Smoothing
-   ↓
-Graphics
+Hand Gesture
+     ↓
+Face State
+     ↓
+Default Reaction
 ```
 
-Face tracking and mouth-state detection are also present in the current codebase.
+A stable hand gesture therefore takes precedence over a stable face reaction.
 
-Gesture recognition is not part of the current implementation.
+The avatar remains a graphical element in the interface. Tracking data determines the reaction state rather than directly moving the avatar according to the user's hand position.
+
+## Development Boundaries
+
+The following boundaries should be preserved:
+
+1. Camera access belongs in the camera module.
+2. Tracking belongs in the tracking modules.
+3. Landmark extraction belongs in landmark-processing modules.
+4. Gesture interpretation belongs in the gesture modules.
+5. Face-state interpretation belongs in the face-state modules.
+6. Coordinate conversion remains separate from tracking.
+7. Smoothing remains separate from tracking.
+8. Asset management remains separate from rendering.
+9. Rendering belongs in the graphics module.
+10. `main.js` coordinates systems but should not become a monolithic implementation.
 
 ## Development Rules
 
@@ -266,7 +316,9 @@ Gesture recognition is not part of the current implementation.
 4. Do not move rendering logic into tracking modules.
 5. Keep coordinate conversion separate from tracking.
 6. Keep smoothing separate from tracking.
-7. Avoid unnecessary rewrites of working code.
-8. Test each subsystem after making changes.
-9. Keep `main.js` as the coordinator rather than turning it into a monolithic implementation.
-10. Do not add future functionality until the current architecture requires it.
+7. Keep gesture recognition separate from raw landmark detection.
+8. Avoid unnecessary rewrites of working code.
+9. Test the affected subsystem after making changes.
+10. Preserve working behavior when making architectural changes.
+11. Prefer small, understandable changes over large refactors.
+12. Do not add functionality unless there is a concrete requirement for it.

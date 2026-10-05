@@ -1,10 +1,11 @@
 {
   "name": "hamscam",
-  "version": "0.0.2",
-  "description": "Local-first browser-based system for real-time camera and hand landmark tracking.",
+  "version": "0.1.0",
+  "description": "Local-first browser-based FOSS project for real-time camera, hand, and face landmark tracking with gesture-driven visual reactions.",
   "main": "index.js",
   "scripts": {
-    "dev": "vite"
+    "dev": "vite",
+    "build": "vite build"
   },
   "repository": {
     "type": "git",
@@ -13,12 +14,14 @@
   "keywords": [
     "computer-vision",
     "hand-tracking",
+    "face-tracking",
+    "gesture-recognition",
     "mediapipe",
     "browser",
     "foss"
   ],
-  "author": "",
-  "license": "ISC",
+  "author": "Kundan Singh",
+  "license": "MIT",
   "type": "module",
   "bugs": {
     "url": "https://github.com/kp7700/HamsCam/issues"

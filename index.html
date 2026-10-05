@@ -8,12 +8,117 @@
 </head>
 
 <body>
-  <div id="stage">
-    <div id="graphics"></div>
+  <div class="app">
 
-    <div id="camera-panel">
-      <video id="camera" autoplay playsinline></video>
+    <header class="app-header">
+      <h1>HamsCam</h1>
+
+      <button
+        id="theme-toggle"
+        class="theme-toggle"
+        type="button"
+        aria-label="Switch to dark theme"
+      >
+        Dark
+      </button>
+    </header>
+
+    <div class="scroll-hint">
+      <h3>↓ Scroll for gestures & details</h3>
     </div>
+
+    <main>
+      <div id="stage">
+
+        <section class="panel" id="camera-panel">
+          <div class="panel-header">
+            <span>Camera</span>
+          </div>
+
+          <div class="panel-content">
+            <video id="camera" autoplay playsinline></video>
+          </div>
+        </section>
+
+        <section class="panel avatar-panel">
+          <div class="panel-header">
+            <span>Avatar</span>
+          </div>
+
+          <div id="graphics"></div>
+        </section>
+
+      </div>
+
+      <section class="status-bar" aria-label="Tracking status">
+        <div class="status-item">
+          <span class="status-label">Tracking</span>
+          <span class="status-value" id="tracking-status">Active</span>
+        </div>
+
+        <div class="status-item">
+          <span class="status-label">Hands</span>
+          <span class="status-value" id="hands-status">—</span>
+        </div>
+
+        <div class="status-item">
+          <span class="status-label">Face</span>
+          <span class="status-value" id="face-status">—</span>
+        </div>
+
+        <div class="status-item">
+          <span class="status-label">Reaction</span>
+          <span class="status-value" id="reaction-status">Default</span>
+        </div>
+      </section>
+
+      <section
+        class="gesture-guide"
+        aria-label="Supported gestures and reactions"
+      >
+        <div class="gesture-guide-header">
+          <span>Gesture list</span>
+        </div>
+
+        <div class="gesture-list">
+          <div class="gesture-item">
+            <span class="gesture-symbol">👍</span>
+            <span>Thumbs Up</span>
+          </div>
+
+          <div class="gesture-item">
+            <span class="gesture-symbol">✌️</span>
+            <span>Peace</span>
+          </div>
+
+          <div class="gesture-item">
+            <span class="gesture-symbol">👌</span>
+            <span>OK Sign</span>
+          </div>
+
+          <div class="gesture-item">
+            <span class="gesture-symbol">🤫</span>
+            <span>Silence</span>
+          </div>
+
+          <div class="gesture-item">
+            <span class="gesture-symbol">👂</span>
+            <span>Both Hands on Ear</span>
+          </div>
+
+          <div class="gesture-item">
+            <span class="gesture-symbol">😮</span>
+            <span>Mouth Open & Eyes Open</span>
+          </div>
+
+          <div class="gesture-item">
+            <span class="gesture-symbol">😯</span>
+            <span>Mouth Open & Eyes Slightly Closed</span>
+          </div>
+        </div>
+      </section>
+    </main>
+
   </div>
 
   <script type="module" src="./src/main.js"></script>
